@@ -192,8 +192,7 @@ test('E2E-AUTH-003: 正常なEmail/Passwordログイン', async ({ page }) => {
 });
 
 // E2E-AUTH-004: パスワードリセット要求から新パスワード設定まで
-// SKIP: レート制限の問題により実装困難
-test.skip('E2E-AUTH-004: パスワードリセット要求から新パスワード設定まで', async ({ page }) => {
+test.only('E2E-AUTH-004: パスワードリセット要求から新パスワード設定まで', async ({ page }) => {
   const consoleLogs = setupConsoleLog(page);
 
   // 既存のtest@example.comを使用（レート制限回避）
