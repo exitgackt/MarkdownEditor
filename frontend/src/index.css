@@ -1,0 +1,60 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #1E1E1E;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+/* Monaco Editor スクロールバーのスタイル */
+.monaco-editor .scrollbar .slider,
+.monaco-scrollable-element .scrollbar .slider {
+  background: #555555 !important;
+  border-radius: 5px !important;
+}
+
+.monaco-editor .scrollbar:hover .slider,
+.monaco-editor .scrollbar .slider:hover {
+  background: #666666 !important;
+}
+
+/* 横スクロールバーの開始位置を左端から */
+.monaco-editor .scrollbar.horizontal {
+  left: 0 !important;
+}
+

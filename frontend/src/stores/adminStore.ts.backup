@@ -1,0 +1,676 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type {
+  UsageSummary,
+  UsageStats,
+  UserListItem,
+  BrowserGuide,
+  Terms,
+  MaintenanceMode,
+  AdminUser,
+  PricingPlan,
+  UserInvitation,
+  UserDetail,
+  AppVersion,
+  VersionHistory,
+  SalesSummary,
+  SalesData,
+  Transaction,
+} from '../types';
+
+interface AdminState {
+  // 利用状況
+  usageSummary: UsageSummary | null;
+  usageStats: UsageStats[];
+  userList: UserListItem[];
+
+  // システム設定
+  browserGuide: BrowserGuide;
+  terms: Terms;
+  maintenanceMode: MaintenanceMode;
+  adminUsers: AdminUser[];
+
+  // 価格設定
+  pricingPlans: PricingPlan[];
+
+  // ユーザー管理
+  invitations: UserInvitation[];
+  userDetails: UserDetail[];
+
+  // バージョン管理
+  appVersion: AppVersion;
+  versionHistory: VersionHistory[];
+
+  // 売上管理
+  salesSummary: SalesSummary | null;
+  salesData: SalesData[];
+  transactions: Transaction[];
+
+  // アクション
+  fetchUsageSummary: () => void;
+  fetchUsageStats: () => void;
+  fetchUserList: () => void;
+
+  updateBrowserGuide: (content: string) => void;
+  updateTerms: (content: string) => void;
+
+  toggleMaintenanceMode: (isActive: boolean, message?: string) => void;
+
+  addAdminUser: (email: string) => boolean;
+  removeAdminUser: (id: string) => boolean;
+
+  // 価格設定アクション
+  fetchPricingPlans: () => void;
+  updatePricingPlan: (id: string, price: number) => void;
+  togglePlanActive: (id: string) => void;
+
+  // ユーザー招待アクション
+  fetchInvitations: () => void;
+  fetchUserDetails: () => void;
+  sendInvitation: (email: string) => boolean;
+  cancelInvitation: (id: string) => boolean;
+  resendInvitation: (id: string) => void;
+  updateUserStatus: (userId: string, status: 'active' | 'suspended') => void;
+
+  // バージョン管理アクション
+  updateAppVersion: (version: string, releaseDate: string, releaseNotes: string) => void;
+  getVersionHistory: () => VersionHistory[];
+
+  // 売上管理アクション
+  fetchSalesSummary: () => void;
+  fetchSalesData: () => void;
+  fetchTransactions: () => void;
+}
+
+// モックデータ生成関数
+const generateMockUsageSummary = (): UsageSummary => ({
+  totalUsers: 1234,
+  activeUsers: 456,
+  todayLogins: 78,
+});
+
+const generateMockUsageStats = (): UsageStats[] => {
+  const stats: UsageStats[] = [];
+  const now = new Date();
+
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+
+    stats.push({
+      date: date.toISOString().split('T')[0],
+      activeUsers: Math.floor(Math.random() * 200) + 300,
+      newUsers: Math.floor(Math.random() * 30) + 5,
+    });
+  }
+
+  return stats;
+};
+
+const generateMockUserList = (): UserListItem[] => {
+  const users: UserListItem[] = [];
+  const now = new Date();
+
+  for (let i = 1; i <= 50; i++) {
+    const createdAt = new Date(now);
+    createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 365));
+
+    const lastLoginAt = new Date(now);
+    lastLoginAt.setDate(lastLoginAt.getDate() - Math.floor(Math.random() * 30));
+
+    users.push({
+      id: `user-${i}`,
+      email: `user${i}@example.com`,
+      name: `ユーザー${i}`,
+      createdAt: createdAt.toISOString(),
+      lastLoginAt: lastLoginAt.toISOString(),
+      role: i <= 2 ? 'admin' : 'user',
+    });
+  }
+
+  return users.sort((a, b) =>
+    new Date(b.lastLoginAt).getTime() - new Date(a.lastLoginAt).getTime()
+  );
+};
+
+const defaultBrowserGuide: BrowserGuide = {
+  content: `推奨ブラウザ: Chrome / Edge
+
+このサービスは File System Access API を使用しているため、Chrome または Edge での利用を推奨しています。
+
+Safari / Firefox では一部機能が制限される場合があります。`,
+  updatedAt: new Date().toISOString(),
+};
+
+const defaultTerms: Terms = {
+  content: `# 利用規約
+
+本サービスの利用規約です。
+
+## 第1条（適用）
+本規約は、本サービスの利用条件を定めるものです。
+
+## 第2条（利用登録）
+利用登録は、Googleアカウントにより行うものとします。
+
+## 第3条（禁止事項）
+以下の行為を禁止します。
+- 法令または公序良俗に違反する行為
+- 犯罪行為に関連する行為
+- サーバーまたはネットワークの機能を破壊したり、妨害したりする行為
+
+## 第4条（本サービスの提供の停止等）
+当社は、以下のいずれかの事由があると判断した場合、ユーザーに事前に通知することなく本サービスの全部または一部の提供を停止または中断することができるものとします。
+- 本サービスにかかるコンピュータシステムの保守点検または更新を行う場合
+- 地震、落雷、火災、停電または天災などの不可抗力により、本サービスの提供が困難となった場合
+
+## 第5条（著作権）
+ユーザーが本サービスを利用して投稿または作成したコンテンツの著作権は、ユーザーに帰属します。
+
+## 第6条（免責事項）
+当社は、本サービスに関して、ユーザーと他のユーザーまたは第三者との間において生じた取引、連絡または紛争等について一切責任を負いません。
+
+## 第7条（サービス内容の変更等）
+当社は、ユーザーに通知することなく、本サービスの内容を変更しまたは本サービスの提供を中止することができるものとし、これによってユーザーに生じた損害について一切の責任を負いません。
+
+## 第8条（利用規約の変更）
+当社は、必要と判断した場合には、ユーザーに通知することなくいつでも本規約を変更することができるものとします。
+
+## 第9条（準拠法・裁判管轄）
+本規約の解釈にあたっては、日本法を準拠法とします。`,
+  version: '1.0',
+  updatedAt: new Date('2026-01-26').toISOString(),
+};
+
+const defaultMaintenanceMode: MaintenanceMode = {
+  isActive: false,
+  message: '',
+  updatedAt: new Date().toISOString(),
+};
+
+const defaultAppVersion: AppVersion = {
+  version: '1.0.0',
+  releaseDate: '2026-01-26',
+  releaseNotes: '初回リリース',
+  createdAt: new Date('2026-01-26').toISOString(),
+};
+
+const defaultAdminUsers: AdminUser[] = [
+  {
+    id: 'admin-1',
+    email: 'admin@example.com',
+    isSelf: true,
+    addedAt: new Date('2026-01-20').toISOString(),
+  },
+  {
+    id: 'admin-2',
+    email: 'admin2@example.com',
+    isSelf: false,
+    addedAt: new Date('2026-01-22').toISOString(),
+  },
+];
+
+const defaultPricingPlans: PricingPlan[] = [
+  {
+    id: 'monthly',
+    name: '月額プラン',
+    price: 980,
+    currency: 'JPY',
+    interval: 'month',
+    features: ['全機能利用可能', 'クラウドストレージ 5GB', 'メールサポート'],
+    isActive: true,
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'yearly',
+    name: '年額プラン',
+    price: 9800,
+    currency: 'JPY',
+    interval: 'year',
+    discount: 16.7, // (980*12 - 9800) / (980*12) * 100
+    features: ['全機能利用可能', 'クラウドストレージ 10GB', '優先サポート'],
+    isActive: true,
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const generateMockUserDetails = (): UserDetail[] => {
+  const users: UserDetail[] = [];
+  const now = new Date();
+
+  for (let i = 1; i <= 50; i++) {
+    const createdAt = new Date(now);
+    createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 365));
+
+    const lastLoginAt = new Date(now);
+    lastLoginAt.setDate(lastLoginAt.getDate() - Math.floor(Math.random() * 30));
+
+    const plans: ('free' | 'monthly' | 'yearly')[] = ['free', 'monthly', 'yearly'];
+    const plan = plans[Math.floor(Math.random() * plans.length)];
+
+    users.push({
+      id: `user-${i}`,
+      email: `user${i}@example.com`,
+      name: `ユーザー${i}`,
+      createdAt: createdAt.toISOString(),
+      lastLoginAt: lastLoginAt.toISOString(),
+      role: i <= 2 ? 'admin' : 'user',
+      plan,
+      status: Math.random() > 0.1 ? 'active' : 'suspended',
+      invitedBy: i > 5 ? 'admin@example.com' : undefined,
+    });
+  }
+
+  return users.sort((a, b) =>
+    new Date(b.lastLoginAt).getTime() - new Date(a.lastLoginAt).getTime()
+  );
+};
+
+const generateMockInvitations = (): UserInvitation[] => {
+  const now = new Date();
+  const invitations: UserInvitation[] = [];
+
+  // 招待中
+  for (let i = 1; i <= 3; i++) {
+    const invitedAt = new Date(now);
+    invitedAt.setDate(invitedAt.getDate() - i);
+
+    const expiresAt = new Date(invitedAt);
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    invitations.push({
+      id: `inv-${i}`,
+      email: `newuser${i}@example.com`,
+      invitedBy: 'admin@example.com',
+      status: 'pending',
+      invitedAt: invitedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      invitationToken: `token-${Math.random().toString(36).substring(7)}`,
+    });
+  }
+
+  // 承認済み
+  for (let i = 4; i <= 6; i++) {
+    const invitedAt = new Date(now);
+    invitedAt.setDate(invitedAt.getDate() - (i + 7));
+
+    const expiresAt = new Date(invitedAt);
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    invitations.push({
+      id: `inv-${i}`,
+      email: `accepted${i}@example.com`,
+      invitedBy: 'admin@example.com',
+      status: 'accepted',
+      invitedAt: invitedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      invitationToken: `token-${Math.random().toString(36).substring(7)}`,
+    });
+  }
+
+  // 期限切れ
+  for (let i = 7; i <= 8; i++) {
+    const invitedAt = new Date(now);
+    invitedAt.setDate(invitedAt.getDate() - (i + 14));
+
+    const expiresAt = new Date(invitedAt);
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    invitations.push({
+      id: `inv-${i}`,
+      email: `expired${i}@example.com`,
+      invitedBy: 'admin@example.com',
+      status: 'expired',
+      invitedAt: invitedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      invitationToken: `token-${Math.random().toString(36).substring(7)}`,
+    });
+  }
+
+  return invitations.sort((a, b) =>
+    new Date(b.invitedAt).getTime() - new Date(a.invitedAt).getTime()
+  );
+};
+
+// 売上モックデータ生成関数
+const generateMockSalesSummary = (): SalesSummary => ({
+  totalRevenue: 2_450_000,
+  monthlyRevenue: 185_000,
+  yearlyRevenue: 2_450_000,
+  growthRate: 12.5,
+  activeSubscriptions: 47,
+  currency: 'JPY',
+});
+
+const generateMockSalesData = (): SalesData[] => {
+  const data: SalesData[] = [];
+  const now = new Date();
+
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const month = date.toISOString().slice(0, 7);
+
+    data.push({
+      date: month,
+      revenue: Math.floor(Math.random() * 100000) + 150000,
+      subscriptions: Math.floor(Math.random() * 20) + 30,
+    });
+  }
+
+  return data;
+};
+
+const generateMockTransactions = (): Transaction[] => {
+  const transactions: Transaction[] = [];
+  const now = new Date();
+  const plans: ('monthly' | 'yearly')[] = ['monthly', 'yearly'];
+  const statuses: ('completed' | 'pending' | 'failed' | 'refunded')[] = [
+    'completed', 'completed', 'completed', 'completed', 'pending', 'failed', 'refunded'
+  ];
+
+  for (let i = 0; i < 50; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - Math.floor(Math.random() * 90));
+    const plan = plans[Math.floor(Math.random() * plans.length)];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+    transactions.push({
+      id: `txn-${i + 1}`,
+      date: date.toISOString(),
+      userEmail: `user${i + 1}@example.com`,
+      userName: `ユーザー${i + 1}`,
+      plan,
+      amount: plan === 'monthly' ? 1980 : 19800,
+      status,
+      paymentMethod: Math.random() > 0.5 ? 'クレジットカード' : 'PayPal',
+    });
+  }
+
+  return transactions.sort((a, b) =>
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+};
+
+export const useAdminStore = create<AdminState>()(
+  persist(
+    (set, get) => ({
+      // 初期状態
+      usageSummary: null,
+      usageStats: [],
+      userList: [],
+      browserGuide: defaultBrowserGuide,
+      terms: defaultTerms,
+      maintenanceMode: defaultMaintenanceMode,
+      adminUsers: defaultAdminUsers,
+      pricingPlans: defaultPricingPlans,
+      invitations: [],
+      userDetails: [],
+      appVersion: defaultAppVersion,
+      salesSummary: null,
+      salesData: [],
+      transactions: [],
+      versionHistory: [defaultAppVersion],
+
+      // 利用状況取得
+      fetchUsageSummary: () => {
+        set({ usageSummary: generateMockUsageSummary() });
+      },
+
+      fetchUsageStats: () => {
+        set({ usageStats: generateMockUsageStats() });
+      },
+
+      fetchUserList: () => {
+        set({ userList: generateMockUserList() });
+      },
+
+      // ブラウザ案内更新
+      updateBrowserGuide: (content: string) => {
+        set({
+          browserGuide: {
+            content,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      },
+
+      // 利用規約更新
+      updateTerms: (content: string) => {
+        const currentTerms = get().terms;
+        const newVersion = parseFloat(currentTerms.version) + 0.1;
+
+        set({
+          terms: {
+            content,
+            version: newVersion.toFixed(1),
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      },
+
+      // メンテナンスモード切替
+      toggleMaintenanceMode: (isActive: boolean, message?: string) => {
+        set({
+          maintenanceMode: {
+            isActive,
+            message: message || '',
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      },
+
+      // 管理者追加
+      addAdminUser: (email: string) => {
+        const { adminUsers } = get();
+
+        // 重複チェック
+        if (adminUsers.some(admin => admin.email === email)) {
+          return false;
+        }
+
+        const newAdmin: AdminUser = {
+          id: `admin-${Date.now()}`,
+          email,
+          isSelf: false,
+          addedAt: new Date().toISOString(),
+        };
+
+        set({ adminUsers: [...adminUsers, newAdmin] });
+        return true;
+      },
+
+      // 管理者削除
+      removeAdminUser: (id: string) => {
+        const { adminUsers } = get();
+        const admin = adminUsers.find(a => a.id === id);
+
+        // 自分自身は削除不可
+        if (admin?.isSelf) {
+          return false;
+        }
+
+        set({ adminUsers: adminUsers.filter(a => a.id !== id) });
+        return true;
+      },
+
+      // 価格プラン取得
+      fetchPricingPlans: () => {
+        // モックデータは既に初期化されているが、必要に応じて再取得
+        const { pricingPlans } = get();
+        if (pricingPlans.length === 0) {
+          set({ pricingPlans: defaultPricingPlans });
+        }
+      },
+
+      // 価格プラン更新
+      updatePricingPlan: (id: string, price: number) => {
+        const { pricingPlans } = get();
+        const updatedPlans = pricingPlans.map(plan => {
+          if (plan.id === id) {
+            // 年額プランの場合、割引率を再計算
+            const discount = plan.interval === 'year'
+              ? ((980 * 12 - price) / (980 * 12)) * 100
+              : undefined;
+
+            return {
+              ...plan,
+              price,
+              discount,
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return plan;
+        });
+
+        set({ pricingPlans: updatedPlans });
+      },
+
+      // プランのON/OFF切替
+      togglePlanActive: (id: string) => {
+        const { pricingPlans } = get();
+        const updatedPlans = pricingPlans.map(plan =>
+          plan.id === id
+            ? { ...plan, isActive: !plan.isActive, updatedAt: new Date().toISOString() }
+            : plan
+        );
+
+        set({ pricingPlans: updatedPlans });
+      },
+
+      // 招待リスト取得
+      fetchInvitations: () => {
+        set({ invitations: generateMockInvitations() });
+      },
+
+      // ユーザー詳細取得
+      fetchUserDetails: () => {
+        set({ userDetails: generateMockUserDetails() });
+      },
+
+      // ユーザー招待送信
+      sendInvitation: (email: string) => {
+        const { invitations } = get();
+
+        // 重複チェック
+        if (invitations.some(inv => inv.email === email)) {
+          return false;
+        }
+
+        const now = new Date();
+        const expiresAt = new Date(now);
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        const newInvitation: UserInvitation = {
+          id: `inv-${Date.now()}`,
+          email,
+          invitedBy: 'admin@example.com', // 実際には現在のユーザーのメールアドレス
+          status: 'pending',
+          invitedAt: now.toISOString(),
+          expiresAt: expiresAt.toISOString(),
+          invitationToken: `token-${Math.random().toString(36).substring(7)}`,
+        };
+
+        set({ invitations: [newInvitation, ...invitations] });
+        return true;
+      },
+
+      // 招待キャンセル
+      cancelInvitation: (id: string) => {
+        const { invitations } = get();
+        const invitation = invitations.find(inv => inv.id === id);
+
+        // ペンディング状態のみキャンセル可能
+        if (invitation?.status !== 'pending') {
+          return false;
+        }
+
+        set({ invitations: invitations.filter(inv => inv.id !== id) });
+        return true;
+      },
+
+      // 招待再送信
+      resendInvitation: (id: string) => {
+        const { invitations } = get();
+        const updatedInvitations = invitations.map(inv => {
+          if (inv.id === id && inv.status === 'pending') {
+            const now = new Date();
+            const expiresAt = new Date(now);
+            expiresAt.setDate(expiresAt.getDate() + 7);
+
+            return {
+              ...inv,
+              invitedAt: now.toISOString(),
+              expiresAt: expiresAt.toISOString(),
+              invitationToken: `token-${Math.random().toString(36).substring(7)}`,
+            };
+          }
+          return inv;
+        });
+
+        set({ invitations: updatedInvitations });
+      },
+
+      // ユーザーステータス更新
+      updateUserStatus: (userId: string, status: 'active' | 'suspended') => {
+        const { userDetails } = get();
+        const updatedUsers = userDetails.map(user =>
+          user.id === userId ? { ...user, status } : user
+        );
+
+        set({ userDetails: updatedUsers });
+      },
+
+      // バージョン管理
+      updateAppVersion: (version: string, releaseDate: string, releaseNotes: string) => {
+        const newVersion: AppVersion = {
+          version,
+          releaseDate,
+          releaseNotes,
+          createdAt: new Date().toISOString(),
+        };
+
+        const newHistoryEntry: VersionHistory = {
+          id: `version-${Date.now()}`,
+          ...newVersion,
+        };
+
+        const { versionHistory } = get();
+        set({
+          appVersion: newVersion,
+          versionHistory: [newHistoryEntry, ...versionHistory],
+        });
+      },
+
+      getVersionHistory: () => {
+        return get().versionHistory;
+      },
+
+      // 売上管理
+      fetchSalesSummary: () => {
+        set({ salesSummary: generateMockSalesSummary() });
+      },
+
+      fetchSalesData: () => {
+        set({ salesData: generateMockSalesData() });
+      },
+
+      fetchTransactions: () => {
+        set({ transactions: generateMockTransactions() });
+      },
+    }),
+    {
+      name: 'admin-storage',
+      partialize: (state) => ({
+        browserGuide: state.browserGuide,
+        terms: state.terms,
+        maintenanceMode: state.maintenanceMode,
+        adminUsers: state.adminUsers,
+        pricingPlans: state.pricingPlans,
+        invitations: state.invitations,
+        userDetails: state.userDetails,
+        appVersion: state.appVersion,
+        versionHistory: state.versionHistory,
+      }),
+    }
+  )
+);

@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+backend.log
+
+# Test results
+test-results/
+playwright-report/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+*.pid
+
+# Database
+*.db
+*.sqlite
+
+# Playwright
+.playwright/
+
+# TypeScript
+*.tsbuildinfo
