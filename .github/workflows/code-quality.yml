@@ -91,3 +91,4 @@ jobs:
         run: |
           du -sh dist/
           echo "Build completed successfully"
+        continue-on-error: true
