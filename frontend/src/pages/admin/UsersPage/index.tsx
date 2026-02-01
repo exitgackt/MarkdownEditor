@@ -32,7 +32,6 @@ const UsersPage = () => {
   const {
     userDetails,
     userDetailsTotal,
-    userDetailsPage,
     fetchUserDetails,
     updateUserStatus,
     isLoading,

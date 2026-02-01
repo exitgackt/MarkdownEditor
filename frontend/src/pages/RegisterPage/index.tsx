@@ -10,11 +10,10 @@ import {
   CircularProgress,
   Link as MuiLink,
 } from '@mui/material';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores';
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

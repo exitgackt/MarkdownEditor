@@ -37,15 +37,12 @@ export const useFileSystemWatcher = (
             children.push(childDir);
           } else {
             const fileHandle = entry as FileSystemFileHandle;
-            const file = await fileHandle.getFile();
 
             children.push({
               id: `file-${entryPath}`,
               name: entry.name,
               path: entryPath,
               type: 'file',
-              size: file.size,
-              lastModified: file.lastModified,
               handle: fileHandle,
             });
           }
@@ -70,10 +67,10 @@ export const useFileSystemWatcher = (
       } catch (error) {
         console.error(`Error scanning directory ${dirHandle.name}:`, error);
         return {
-          id: currentPath || dirHandle.name,
+          id: dirHandle.name,
           name: dirHandle.name,
-          path: currentPath || dirHandle.name,
-          type: 'directory',
+          path: dirHandle.name,
+          type: 'folder',
           children: [],
           handle: dirHandle,
         };
@@ -88,8 +85,6 @@ export const useFileSystemWatcher = (
       name: n.name,
       path: n.path,
       type: n.type,
-      size: n.size,
-      lastModified: n.lastModified,
       children: n.children?.map(serialize).sort((a, b) => a.path.localeCompare(b.path)),
     });
 

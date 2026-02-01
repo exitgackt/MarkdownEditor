@@ -14,7 +14,7 @@ import { useAuthStore } from '../../stores';
 const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { verifyEmail, isLoading, error } = useAuthStore();
+  const { verifyEmail, error } = useAuthStore();
   const [verificationStatus, setVerificationStatus] = useState<
     'loading' | 'success' | 'error'
   >('loading');
