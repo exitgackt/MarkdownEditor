@@ -1,12 +1,12 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/642526317126/markdown-editor-api:$COMMIT_SHA', '.']
+    args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/project-926c918a-d42a-4ba3-a37/markdown-editor/api:$COMMIT_SHA', '.']
     dir: 'backend'
 
-  # Push the container image to Container Registry
+  # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/642526317126/markdown-editor-api:$COMMIT_SHA']
+    args: ['push', 'asia-northeast1-docker.pkg.dev/project-926c918a-d42a-4ba3-a37/markdown-editor/api:$COMMIT_SHA']
 
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,7 +15,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'markdown-editor-api'
-      - '--image=gcr.io/642526317126/markdown-editor-api:$COMMIT_SHA'
+      - '--image=asia-northeast1-docker.pkg.dev/project-926c918a-d42a-4ba3-a37/markdown-editor/api:$COMMIT_SHA'
       - '--region=asia-northeast1'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -26,4 +26,4 @@ steps:
       - '--project=project-926c918a-d42a-4ba3-a37'
 
 images:
-  - 'gcr.io/642526317126/markdown-editor-api:$COMMIT_SHA'
+  - 'asia-northeast1-docker.pkg.dev/project-926c918a-d42a-4ba3-a37/markdown-editor/api:$COMMIT_SHA'
