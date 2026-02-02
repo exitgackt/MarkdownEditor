@@ -1,8 +1,8 @@
 # Visual Studio風マークダウンエディタ - 要件定義書
 
-> **バージョン**: 2.8
+> **バージョン**: 2.9
 > **作成日**: 2026-01-26
-> **最終更新**: 2026-02-01
+> **最終更新**: 2026-02-03
 > **ステータス**: 確定
 
 要件定義の作成原則
@@ -214,6 +214,126 @@ Google OAuth 2.0を使用してユーザー認証を行う
   - ファイルパス
   - ファイルタイプ
 ```
+
+---
+
+### 3.3.1 メニューバー詳細仕様
+
+#### 目的
+Visual Studio風の操作性を実現するため、メニューバーで一般的なファイル操作・編集機能を提供
+
+#### メニュー構成
+
+**ファイル（F）メニュー**
+| 項目 | ショートカット | 説明 |
+|------|--------------|------|
+| 新しいファイル | Alt+N | 新規ファイルを作成 |
+| 新しいフォルダー | Alt+B | 新規フォルダーを作成（フォルダ選択時のみ） |
+| ファイルを開く | Alt+O | ファイルを開く |
+| フォルダーを開く | Alt+U | フォルダーを開く（File System Access API） |
+| インポート | Alt+I | Word/テキストファイルをインポート |
+| 保存 | Ctrl+S | 現在のファイルを保存 |
+| 名前を付けて保存 | Alt+S | 新しい名前で保存 |
+| すべて保存 | Ctrl+Alt+S | すべてのタブを保存 |
+| エクスポート | - | PDF/HTML/Word形式でエクスポート（サブメニュー） |
+| タブを閉じる | Alt+K | 現在のタブを閉じる |
+| 全てのタブを閉じる | Alt+J | すべてのタブを閉じる |
+
+**編集（E）メニュー**
+| 項目 | ショートカット | 説明 |
+|------|--------------|------|
+| 元に戻す | Ctrl+Z | 最後の編集を取り消す |
+| やり直し | Ctrl+Y | 取り消した編集をやり直す |
+| 検索 | Ctrl+F | テキスト検索ダイアログを開く |
+| 置換 | Ctrl+R | テキスト置換ダイアログを開く |
+| 前のタブ | Alt+Z | 前のタブに切り替え |
+| 次のタブ | Alt+X | 次のタブに切り替え |
+
+**表示（V）メニュー**
+| 項目 | ショートカット | 説明 |
+|------|--------------|------|
+| プレビュー | Alt+L | プレビューパネルの表示/非表示 |
+| マインドマップ | Alt+M | マインドマップ表示の表示/非表示 |
+| 分割エディタ | Alt+D | 分割エディタ表示の表示/非表示 |
+| サイドバー | Alt+W | ファイルツリー（左パネル）の表示/非表示 |
+| 差分比較 | Ctrl+Alt+C | 差分比較モードの開始/終了 |
+
+**ツール（T）メニュー**
+| 項目 | ショートカット | 説明 |
+|------|--------------|------|
+| 設定 | - | エディタ設定ダイアログを開く |
+
+**ヘルプ（H）メニュー**
+| 項目 | ショートカット | 説明 |
+|------|--------------|------|
+| キーボードショートカット | - | ショートカット一覧ダイアログを開く |
+| ヘルプ | - | ヘルプページを開く |
+| バージョン情報 | - | バージョン情報ダイアログを表示 |
+
+---
+
+### 3.3.2 差分比較機能詳細仕様
+
+#### 目的
+2つのファイルの内容を視覚的に比較し、変更点を明確に表示する
+
+#### 主要機能
+- **Side-by-side表示**: 左側（original）と右側（modified）に並べて表示
+- **差分ハイライト**: 削除行は赤色、追加行は緑色で強調
+- **行番号表示**: 両側に行番号を表示して対比を容易に
+- **グリフマージン**: 行番号左側に差分インジケーターを表示
+- **独立した編集**: 左右両側のエディタで編集可能
+- **リアルタイム更新**: 編集内容がタブに即座に反映
+
+#### 技術仕様（Monaco Diff Editor）
+```typescript
+// 主要設定
+{
+  renderSideBySide: true,          // 並べて表示
+  renderIndicators: true,          // 差分インジケーター表示
+  glyphMargin: true,               // グリフマージン有効化
+  renderOverviewRuler: true,       // overview ruler表示
+  overviewRulerLanes: 3,           // overview ruler の表示レーン数
+  enableSplitViewResizing: true,   // リサイズ可能
+  ignoreTrimWhitespace: false,     // 末尾空白も比較対象
+  originalEditable: true,          // 左側エディタ編集可能
+  readOnly: false,                 // 右側エディタ編集可能
+}
+
+// イベントハンドラー
+- onOriginalChange: 左側（original）の編集内容を検出
+- onModifiedChange: 右側（modified）の編集内容を検出
+```
+
+#### ユーザー操作フロー
+1. エディタページで「差分比較」メニューを選択
+2. システムが差分比較モード開始
+3. ユーザーがタブから左右のファイルを選択
+4. Monaco Diff Editor が2つのファイルを並べて表示
+5. 差分部分が色付き（赤=削除、緑=追加）で表示
+6. ユーザーが左右どちらのエディタでも編集可能
+7. Ctrl+S で編集内容を保存
+8. 「通常モードに戻る」で比較終了
+
+---
+
+### 3.3.3 設定機能詳細仕様
+
+#### 目的
+エディタの表示・動作設定をユーザーがカスタマイズする
+
+#### 設定項目
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|------------|
+| フォントサイズ | エディタのフォントサイズ（10-20px） | 14px |
+| 折り返し | 長い行の自動折り返し設定 | On |
+| ミニマップ表示 | 右側ミニマップの表示/非表示 | Off |
+| 行番号表示 | 左側行番号の表示/非表示 | On |
+
+#### 削除された設定
+- **カラーテーマ選択**: VS Code標準のダークテーマ（vs-dark）で固定化
+  - 理由: 単一テーマでの管理により、UIの複雑さ削減と安定性向上
+  - テーマ自動検出: ブラウザのダークモード設定に基づいて自動適用
 
 ---
 
@@ -557,6 +677,24 @@ CVSS 3.1の評価観点:
 - ✅ 入力値のサニタイゼーション（XSS対策）
 - ✅ エラーメッセージでの情報漏洩防止
 
+**Content Security Policy (CSP) 設定**:
+- ✅ default-src: 'self'
+- ✅ script-src: 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://cdn.jsdelivr.net
+- ✅ style-src: 'self' 'unsafe-inline' https://cdn.jsdelivr.net
+- ✅ style-src-elem: 'self' 'unsafe-inline' https://cdn.jsdelivr.net
+- ✅ font-src: 'self' data:
+- ✅ worker-src: blob:
+- ✅ img-src: 'self' data: https:
+- ✅ connect-src: 'self' https://*.googleapis.com https://*.sentry.io https://cdn.jsdelivr.net https://markdown-editor-backend-642526317126.asia-southeast1.run.app
+- ✅ frame-src: https://accounts.google.com
+
+**CSP対応理由**:
+- Monaco Editor（CDN）: script-src, style-src, connect-src で許可
+- Monaco Diff Editor Web Worker: worker-src 'blob:' で許可
+- カスタムフォント（データURI）: font-src 'data:' で許可
+- Sentry エラー監視: connect-src で許可
+- Google OAuth: script-src, frame-src で許可
+
 ---
 
 ### 運用要件：可用性とヘルスチェック
@@ -592,7 +730,8 @@ CVSS 3.1の評価観点:
 | ビルドツール | Vite 5 | 高速、モダンなビルド環境 |
 | UI | React 18 + TypeScript 5 | 再利用可能なコンポーネント設計、型安全性 |
 | UIライブラリ | MUI v6 | VS Code風UIの実現、豊富なコンポーネント |
-| エディタ | Monaco Editor | VS Code同等の編集・差分比較 |
+| エディタ | Monaco Editor | VS Code同等の編集機能 |
+| 差分比較 | Monaco Diff Editor | Side-by-side 差分表示（renderIndicators, glyphMargin対応） |
 | 状態管理 | Zustand | 軽量、タブ・ファイル管理に最適 |
 | ルーティング | React Router v6 | ページ遷移管理 |
 | ファイル操作 | File System Access API | Chrome/Edgeでローカルファイルアクセス |
@@ -771,3 +910,4 @@ CVSS 3.1の評価観点:
 | 2.6 | 2026-02-01 | E2Eテスト環境改善：バックエンド接続問題の完全解決、E2Eテスト用ユーザー管理スクリプト実装（create_e2e_test_users.py）、認証テスト100%達成（9/9）、パスワードリセット専用ユーザー実装、admin_usersテーブル統合、テストカバレッジ85%（34/40、admin-users.spec.ts調整待ち） |
 | 2.7 | 2026-02-01 | admin-users.spec.ts修正完了：管理者アカウント統一（fulltest-admin@example.com）、loginAsAdmin関数をEmail/Passwordログインに変更、全テスト合格（7/7）✅、最終テストカバレッジ97.5%（39/40、E2E-EDIT-010のみ調整待ち） |
 | 2.8 | 2026-02-01 | E2Eテスト100%達成🎊：全40項目のテストが合格、Phase 12完了、E2E-EDIT-010含むすべてのテストが安定稼働、目標カバレッジ90%を大幅に超える100%を達成 |
+| 2.9 | 2026-02-03 | メニューバー・差分比較機能・CSP設定の詳細仕様を追加：メニューバーの全メニュー項目・ショートカット詳細化、Monaco Diff Editorの実装仕様（renderIndicators, glyphMargin, onOriginalChange/onModifiedChange対応）、CSP設定の詳細（style-src, worker-src, font-src対応）、カラーモード削除と理由の明記 |
