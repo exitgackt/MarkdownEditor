@@ -30,6 +30,13 @@ try:
         print("Database migration completed successfully")
     except Exception as migration_error:
         print(f"WARNING: Database migration encountered an issue: {migration_error}")
+        print("Attempting to create tables using SQLAlchemy...")
+        try:
+            from app.core.database import engine, Base
+            Base.metadata.create_all(bind=engine)
+            print("Tables created using SQLAlchemy")
+        except Exception as table_error:
+            print(f"WARNING: Could not create tables: {table_error}")
         print("Continuing startup anyway...")
     print()
 
