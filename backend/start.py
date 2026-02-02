@@ -2,7 +2,6 @@
 """Entry point script to start the FastAPI application."""
 import sys
 import os
-import subprocess
 
 print("=== Markdown Editor Backend Startup ===")
 print(f"Python version: {sys.version}")
@@ -22,13 +21,16 @@ try:
     print()
 
     print("Running database migrations...")
-    result = subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
-        cwd="/app"
-    )
-    if result.returncode != 0:
-        print("WARNING: Database migration had issues, but continuing startup...")
-    print("Database migration completed")
+    try:
+        from alembic.config import Config
+        from alembic.command import upgrade
+
+        alembic_cfg = Config("/app/alembic.ini")
+        upgrade(alembic_cfg, "head")
+        print("Database migration completed successfully")
+    except Exception as migration_error:
+        print(f"WARNING: Database migration encountered an issue: {migration_error}")
+        print("Continuing startup anyway...")
     print()
 
     print("Starting uvicorn server...")
