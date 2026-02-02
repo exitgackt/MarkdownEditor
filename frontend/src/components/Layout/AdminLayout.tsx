@@ -90,7 +90,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
@@ -136,7 +136,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   const handleLogout = () => {
     handleAccountMenuClose();
-    // ログアウト処理（実装はログインページに遷移）
+    logout();
     navigate('/login');
   };
 
