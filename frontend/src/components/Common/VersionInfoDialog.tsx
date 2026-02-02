@@ -67,8 +67,10 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
     <Dialog
       open={open}
       onClose={onClose}
-      onEntered={handleDialogEntered}
       maxWidth={false}
+      TransitionProps={{
+        onEntered: handleDialogEntered,
+      }}
       PaperProps={{
         sx: {
           width: 600,
