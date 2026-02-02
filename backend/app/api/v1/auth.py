@@ -113,20 +113,23 @@ async def register(
     verification_token = auth_service.generate_verification_token()
 
     # Create user
+    # In debug mode, skip email verification
+    email_verified = settings.debug
     user = User(
         email=request.email,
         name=request.name,
         hashed_password=hashed_password,
         auth_provider="email",
-        email_verified=False,
-        email_verification_token=verification_token,
+        email_verified=email_verified,
+        email_verification_token=verification_token if not email_verified else None,
         is_admin=request.email in settings.admin_emails_list,
     )
     db.add(user)
     db.commit()
 
-    # Send verification email
-    await email_service.send_verification_email(request.email, verification_token)
+    # Send verification email only if not in debug mode
+    if not settings.debug:
+        await email_service.send_verification_email(request.email, verification_token)
 
     return RegisterResponse(
         message="登録が完了しました。メールに送信された確認リンクをクリックしてください。",
