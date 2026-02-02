@@ -23,8 +23,12 @@ const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    // ページ遷移時にエラーをクリア
+    // ページ遷移時にエラーをクリアとフォームをリセット
     clearError();
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setName('');
   }, [clearError]);
 
   const validatePassword = (password: string): string | null => {
@@ -131,7 +135,7 @@ const RegisterPage = () => {
                   {error || formError}
                 </Alert>
               )}
-              <Box component="form" onSubmit={handleSubmit}>
+              <Box component="form" onSubmit={handleSubmit} autoComplete="off">
                 <TextField
                   fullWidth
                   label="名前"
