@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     )
 
     # Google OAuth
-    google_client_id: str = Field(..., alias="GOOGLE_CLIENT_ID")
-    google_client_secret: str = Field(..., alias="GOOGLE_CLIENT_SECRET")
+    google_client_id: str = Field(default="", alias="GOOGLE_CLIENT_ID")
+    google_client_secret: str = Field(default="", alias="GOOGLE_CLIENT_SECRET")
 
     # Database
     database_url: str = Field(..., alias="DATABASE_URL")
@@ -52,6 +52,10 @@ class Settings(BaseSettings):
         default="noreply@example.com", alias="SMTP_FROM_EMAIL"
     )
 
+    # Monitoring
+    sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
+    environment: str = Field(default="development", alias="ENVIRONMENT")
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -72,4 +76,9 @@ class Settings(BaseSettings):
         return [email.strip() for email in self.initial_admin_emails.split(",")]
 
 
-settings = Settings()
+try:
+    settings = Settings()
+except Exception as e:
+    import sys
+    print(f"ERROR: Failed to load settings: {e}", file=sys.stderr)
+    raise
