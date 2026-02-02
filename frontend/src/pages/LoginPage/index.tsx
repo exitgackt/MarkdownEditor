@@ -223,14 +223,6 @@ const LoginPageContent = () => {
               </Typography>
             </>
           )}
-
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              デモ用管理者アカウント
-              <br />
-              admin@example.com
-            </Typography>
-          </Box>
         </CardContent>
       </Card>
     </Box>
