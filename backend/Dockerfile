@@ -12,21 +12,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies to user directory
-RUN pip install --no-cache-dir --user -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Production stage
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
-
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and reinstall packages to system Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
@@ -34,12 +35,11 @@ RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 # Copy application code
 COPY --chown=appuser:appuser . .
 
-# Switch to non-root user
-USER appuser
-
-# Add local bin to PATH and Python path
-ENV PATH=/root/.local/bin:$PATH
+# Set Python path
 ENV PYTHONPATH=/app:$PYTHONPATH
+
+# Switch to non-root user for security
+USER appuser
 
 # Run database migrations and start server
 CMD ["python", "start.py"]
