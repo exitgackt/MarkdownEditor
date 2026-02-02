@@ -151,7 +151,7 @@ const RegisterPage = () => {
                   sx={{ mb: 2 }}
                   required
                   data-testid="email-input"
-                  inputProps={{ 'data-testid': 'email-input-field' }}
+                  inputProps={{ 'data-testid': 'email-input-field', autoComplete: 'off' }}
                 />
                 <TextField
                   fullWidth
@@ -163,7 +163,7 @@ const RegisterPage = () => {
                   required
                   helperText="8文字以上、大文字・小文字・数字を含む"
                   data-testid="password-input"
-                  inputProps={{ 'data-testid': 'password-input-field' }}
+                  inputProps={{ 'data-testid': 'password-input-field', autoComplete: 'new-password' }}
                 />
                 <TextField
                   fullWidth
@@ -174,7 +174,7 @@ const RegisterPage = () => {
                   sx={{ mb: 3 }}
                   required
                   data-testid="password-confirm-input"
-                  inputProps={{ 'data-testid': 'password-confirm-input-field' }}
+                  inputProps={{ 'data-testid': 'password-confirm-input-field', autoComplete: 'new-password' }}
                 />
                 <Button type="submit" fullWidth variant="contained" size="large" sx={{ mb: 2 }} data-testid="register-button">
                   登録
