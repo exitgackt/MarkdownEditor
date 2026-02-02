@@ -76,42 +76,42 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
         sx: {
           width: 600,
           maxHeight: '80vh',
-          bgcolor: '#f0f0f0',
-          borderRadius: '4px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          bgcolor: '#2D2D2D',
+          borderRadius: '8px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         },
       }}
     >
       <DialogTitle
         sx={{
-          bgcolor: '#e0e0e0',
-          py: 0.5,
-          px: 1.5,
-          fontSize: '12px',
-          fontWeight: 'normal',
-          borderBottom: '1px solid #ccc',
-          color: '#000',
+          bgcolor: '#1E1E1E',
+          py: 1.5,
+          px: 2,
+          fontSize: '14px',
+          fontWeight: 500,
+          borderBottom: '1px solid #3C3C3C',
+          color: '#fff',
         }}
       >
         バージョン情報
       </DialogTitle>
 
       {/* タブ */}
-      <Box sx={{ borderBottom: 1, borderColor: '#ccc', bgcolor: '#f0f0f0' }}>
+      <Box sx={{ borderBottom: 1, borderColor: '#3C3C3C' }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           aria-label="version info tabs"
           sx={{
-            minHeight: 36,
+            minHeight: 40,
             '& .MuiTab-root': {
-              minHeight: 36,
+              minHeight: 40,
               fontSize: '12px',
-              color: '#000',
+              color: '#888',
               textTransform: 'none',
               '&.Mui-selected': {
                 color: '#0078d4',
-                fontWeight: 'bold',
+                fontWeight: 500,
               },
             },
             '& .MuiTabs-indicator': {
@@ -127,7 +127,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
 
       <DialogContent
         ref={dialogContentRef}
-        sx={{ pt: 0, pb: 2, px: 0, minHeight: 300, maxHeight: '60vh', overflow: 'auto' }}
+        sx={{ pt: 0, pb: 2, px: 3, minHeight: 300, maxHeight: '60vh', overflow: 'auto' }}
       >
         {/* バージョンタブ */}
         <TabPanel value={tabValue} index={0}>
@@ -152,7 +152,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: '#000',
+                  color: '#fff',
                   fontWeight: 'bold',
                   fontSize: '18px',
                   mb: 1,
@@ -167,7 +167,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#000',
+                  color: '#ccc',
                   fontSize: '13px',
                   lineHeight: 1.8,
                   whiteSpace: 'pre-wrap',
@@ -182,7 +182,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
             <Box sx={{ mt: 2 }}>
               <Typography
                 variant="caption"
-                sx={{ color: '#666', fontSize: '11px' }}
+                sx={{ color: '#888', fontSize: '11px' }}
               >
                 {copyright}
               </Typography>
@@ -195,7 +195,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
           <Typography
             variant="body2"
             sx={{
-              color: '#000',
+              color: '#ccc',
               fontSize: '13px',
               lineHeight: 1.8,
               whiteSpace: 'pre-wrap',
@@ -211,7 +211,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
           <Typography
             variant="body2"
             sx={{
-              color: '#000',
+              color: '#ccc',
               fontSize: '13px',
               lineHeight: 1.8,
               whiteSpace: 'pre-wrap',
@@ -227,31 +227,26 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
         sx={{
           px: 2,
           pb: 2,
-          pt: 2,
-          justifyContent: 'center',
-          bgcolor: '#e0e0e0',
-          borderTop: '1px solid #ccc',
+          pt: 1,
+          borderTop: '1px solid #3C3C3C',
         }}
       >
         <Button
-          variant="outlined"
+          variant="contained"
           size="small"
           onClick={onClose}
           sx={{
-            minWidth: 85,
-            height: 26,
+            minWidth: 80,
+            height: 30,
             fontSize: '12px',
-            color: '#000',
-            borderColor: '#adadad',
-            bgcolor: '#f0f0f0',
+            bgcolor: '#0078d4',
             textTransform: 'none',
             '&:hover': {
-              bgcolor: '#c7e0f4',
-              borderColor: '#0078d4',
+              bgcolor: '#106ebe',
             },
           }}
         >
-          OK
+          閉じる
         </Button>
       </DialogActions>
     </Dialog>

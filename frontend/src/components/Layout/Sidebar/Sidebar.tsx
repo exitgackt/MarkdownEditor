@@ -502,7 +502,7 @@ const Sidebar = ({
                     color="text.secondary"
                     sx={{ fontSize: '0.75rem' }}
                   >
-                    フォルダが開かれていません
+                    フォルダーが開かれていません
                   </Typography>
                 </Box>
               )}
