@@ -73,7 +73,72 @@ python3 scripts/create_e2e_test_users.py
    - E2E-EDIT-010含む全テストが合格
    - テストカバレッジ100%達成 🎊
 
-最終更新: 2026-02-02 00:00
+最終更新: 2026-02-03 23:59
+
+---
+
+## 🔧 最近の改善内容（2026-02-03）
+
+### メニューバー UI 改善
+- ✅ 前のタブ・次のタブを「ファイル」→「編集」メニューに移動
+- ✅ ナビゲーションアイコン（◀ ▶）追加
+- ✅ メニュー項目の整理と最適化
+
+### 差分比較機能の強化
+- ✅ Monaco Diff Editor に差分インジケーター常時表示（renderIndicators: true）
+- ✅ グリフマージン（glyphMargin: true）を有効化
+- ✅ onOriginalChange/onModifiedChange ハンドラーで編集内容検出
+- ✅ CSS スタイル改善（Revert Block メニュー非表示、差分ガター常表示）
+- ✅ **差分表示が正常に動作** 🎉
+
+### 設定機能の簡潔化
+- ✅ SettingsDialog からカラーテーマ選択を削除
+- ✅ VS Code標準ダークテーマで固定化（UIシンプル化）
+- ✅ 残存設定項目：フォントサイズ、折り返し、ミニマップ、行番号
+
+### CSP（Content Security Policy）セキュリティ強化
+- ✅ **解決：style-src CSP 違反** → `https://cdn.jsdelivr.net` を style-src に追加
+- ✅ **解決：worker-src CSP 違反** → `worker-src blob:` を設定
+- ✅ **解決：font-src CSP 違反** → `font-src 'self' data:` を設定
+- ✅ **解決：connect-src CSP 違反** → `https://cdn.jsdelivr.net` を connect-src に追加
+- ✅ Monaco Editor が完全に機能するようになった
+
+### デプロイプロセス改善
+- ✅ git push を忘れていた問題を検出・解決
+- ✅ 本番環境と開発環境の差分を可視化
+- ✅ Vercel 自動デプロイの動作確認
+
+### ドキュメント更新
+- ✅ 要件定義書をバージョン 2.9 に更新
+- ✅ メニューバー詳細仕様（全メニュー項目・ショートカット）を追加
+- ✅ 差分比較機能詳細仕様（Monaco Diff Editor 設定含む）を追加
+- ✅ CSP 設定詳細を追加
+- ✅ カラーモード削除の理由を記載
+
+---
+
+## ✅ 解決した問題（2026-02-03）
+
+### 1. 古いコミットがデプロイされていた
+**原因**: git push を実行せずにコミットしていた
+**症状**: 前のタブ・次のタブが編集メニューに移動していたのに、本番環境では古いファイルメニュー表示
+**解決**: `git push` を実行してリモートに最新コミットを反映
+
+### 2. Monaco Editor CSP エラー（複数段階）
+**エラー1**: style-src でCSS読み込みがブロック
+→ style-src に `https://cdn.jsdelivr.net` を追加
+
+**エラー2**: worker-src でWeb Worker作成がブロック
+→ `worker-src blob:` を設定
+
+**エラー3**: font-src でデータURIフォントがブロック
+→ `font-src 'self' data:` を設定
+
+**エラー4**: connect-src でSource Mapアクセスがブロック
+→ connect-src に `https://cdn.jsdelivr.net` を追加
+
+**解決**: vercel.json の Content-Security-Policy を4回に分けて修正
+**結果**: 差分比較機能が完全に機能するようになった 🎉
 
 ---
 
