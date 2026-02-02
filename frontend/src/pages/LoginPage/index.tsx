@@ -140,7 +140,7 @@ const LoginPageContent = () => {
           ) : (
             <>
               {/* メール・パスワードログインフォーム */}
-              {authSettings?.email_enabled && (
+              {(authSettings?.email_enabled !== false) && (
                 <Box component="form" onSubmit={handleEmailLogin} sx={{ mb: 3 }}>
                   <TextField
                     fullWidth
@@ -191,7 +191,7 @@ const LoginPageContent = () => {
               )}
 
               {/* 区切り線 */}
-              {authSettings?.email_enabled && authSettings?.google_enabled && (
+              {(authSettings?.email_enabled !== false) && authSettings?.google_enabled && GOOGLE_CLIENT_ID && (
                 <Divider sx={{ my: 3 }}>
                   <Typography variant="body2" color="text.secondary">
                     または
@@ -200,7 +200,7 @@ const LoginPageContent = () => {
               )}
 
               {/* Googleログイン */}
-              {authSettings?.google_enabled && (
+              {authSettings?.google_enabled && GOOGLE_CLIENT_ID && (
                 <>
                   <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }} data-testid="google-login-button">
                     <GoogleLogin
@@ -238,31 +238,17 @@ const LoginPageContent = () => {
 };
 
 const LoginPage = () => {
-  if (!GOOGLE_CLIENT_ID) {
+  // Google OAuth is optional - only wrap with provider if Client ID is configured
+  if (GOOGLE_CLIENT_ID) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: 'background.default',
-        }}
-      >
-        <Alert severity="error">
-          Google OAuth Client IDが設定されていません。
-          <br />
-          .env.localファイルにVITE_GOOGLE_CLIENT_IDを設定してください。
-        </Alert>
-      </Box>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <LoginPageContent />
+      </GoogleOAuthProvider>
     );
   }
 
-  return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <LoginPageContent />
-    </GoogleOAuthProvider>
-  );
+  // Render without Google OAuth provider if Client ID is not configured
+  return <LoginPageContent />;
 };
 
 export default LoginPage;
