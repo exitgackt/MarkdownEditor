@@ -56,11 +56,10 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
     }
   }, [tabValue]);
 
-  // ダイアログを開いたときもスクロール位置をリセット
+  // ダイアログを開いたときにタブを最初に戻す
   useEffect(() => {
-    if (open && dialogContentRef.current) {
-      dialogContentRef.current.scrollTop = 0;
-      setTabValue(0); // タブも最初に戻す
+    if (open) {
+      setTabValue(0);
     }
   }, [open]);
 
