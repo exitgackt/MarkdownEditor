@@ -49,19 +49,16 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
     setTabValue(newValue);
   };
 
+  const handleDialogEntered = () => {
+    setTabValue(0);
+  };
+
   // タブ切り替え時にスクロール位置を最上段にリセット
   useEffect(() => {
     if (dialogContentRef.current) {
       dialogContentRef.current.scrollTop = 0;
     }
   }, [tabValue]);
-
-  // ダイアログを開いたときにタブを最初に戻す
-  useEffect(() => {
-    if (open) {
-      setTabValue(0);
-    }
-  }, [open]);
 
   const appName = 'Markdown Editor';
   const copyright = '© 2026 Markdown Editor Team';
@@ -70,6 +67,7 @@ const VersionInfoDialog = ({ open, onClose }: VersionInfoDialogProps) => {
     <Dialog
       open={open}
       onClose={onClose}
+      onEntered={handleDialogEntered}
       maxWidth={false}
       PaperProps={{
         sx: {
