@@ -22,3 +22,7 @@ requests==2.32.5
 
 # CORS
 fastapi-cors==0.0.6
+
+# Rate limiting and monitoring
+slowapi==0.1.9
+sentry-sdk[fastapi]==2.0.0

@@ -40,6 +40,8 @@ import {
   GetApp,
   FileUpload,
   AdminPanelSettings,
+  NavigateBefore,
+  NavigateNext,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../stores';
@@ -424,15 +426,6 @@ const MenuBar = ({
             <ListItemText>全てのタブを閉じる</ListItemText>
             <Typography sx={shortcutTextSx}>Alt+J</Typography>
           </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleAction('file', onPreviousTab)} disabled={!hasContent}>
-            <ListItemText>前のタブ</ListItemText>
-            <Typography sx={shortcutTextSx}>Alt+Z</Typography>
-          </MenuItem>
-          <MenuItem onClick={handleAction('file', onNextTab)} disabled={!hasContent}>
-            <ListItemText>次のタブ</ListItemText>
-            <Typography sx={shortcutTextSx}>Alt+X</Typography>
-          </MenuItem>
         </Menu>
 
         {/* エクスポートサブメニュー */}
@@ -519,6 +512,17 @@ const MenuBar = ({
             <ListItemIcon><FindReplace fontSize="small" /></ListItemIcon>
             <ListItemText>置換</ListItemText>
             <Typography sx={shortcutTextSx}>Ctrl+R</Typography>
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={handleAction('edit', onPreviousTab)} disabled={!hasContent}>
+            <ListItemIcon><NavigateBefore fontSize="small" /></ListItemIcon>
+            <ListItemText>前のタブ</ListItemText>
+            <Typography sx={shortcutTextSx}>Alt+Z</Typography>
+          </MenuItem>
+          <MenuItem onClick={handleAction('edit', onNextTab)} disabled={!hasContent}>
+            <ListItemIcon><NavigateNext fontSize="small" /></ListItemIcon>
+            <ListItemText>次のタブ</ListItemText>
+            <Typography sx={shortcutTextSx}>Alt+X</Typography>
           </MenuItem>
         </Menu>
 

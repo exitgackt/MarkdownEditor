@@ -438,31 +438,29 @@ test('E2E-EDIT-007: 差分比較フロー', async ({ page }) => {
 
   await test.step('Alt+Yで差分比較モードに切り替え', async () => {
     await page.keyboard.press('Alt+Y');
+    await page.waitForTimeout(500);
   });
 
-  await test.step('差分比較用のファイル選択ダイアログが表示される', async () => {
-    const diffDialog = page.locator('.diff-select-dialog');
-    await expect(diffDialog).toBeVisible({ timeout: 5000 });
+  await test.step('差分比較モードに切り替わる（現在のタブが左右に表示される）', async () => {
+    // 差分比較モード用のボタン「通常モードに戻る」が表示される
+    const backButton = page.locator('button:has-text("通常モードに戻る")');
+    await expect(backButton).toBeVisible({ timeout: 5000 });
   });
 
-  await test.step('比較元ファイル: file1.md、比較先ファイル: file2.md を選択', async () => {
-    // MUIのSelectコンポーネントを使用しているため、role="combobox"の要素をクリック
-    // 比較元ファイル選択
-    await page.locator('#mui-component-select-originalFile').click();
-    await page.waitForTimeout(300);
-    await page.locator('li:has-text("file1.md")').first().click();
+  await test.step('左右のタブバーで比較するファイルを選択', async () => {
+    // タブバーが2つ表示されている（左側と右側）
+    const tabBars = page.locator('.tab-bar');
+    await expect(tabBars).toHaveCount(2, { timeout: 5000 });
+
+    // 左側タブバー（最初のタブバー）でfile1.mdを選択
+    const leftTabBar = tabBars.first();
+    await leftTabBar.locator('.tab:has-text("file1.md")').click();
     await page.waitForTimeout(300);
 
-    // 比較先ファイル選択
-    await page.locator('#mui-component-select-modifiedFile').click();
-    await page.waitForTimeout(300);
-    await page.locator('li:has-text("file2.md")').first().click();
-    await page.waitForTimeout(300);
-  });
-
-  await test.step('「比較」ボタンをクリック', async () => {
-    const compareButton = page.locator('button:has-text("比較")');
-    await compareButton.click();
+    // 右側タブバー（2番目のタブバー）でfile2.mdを選択
+    const rightTabBar = tabBars.nth(1);
+    await rightTabBar.locator('.tab:has-text("file2.md")').click();
+    await page.waitForTimeout(500);
   });
 
   await test.step('Monaco Diff Editorが表示される', async () => {

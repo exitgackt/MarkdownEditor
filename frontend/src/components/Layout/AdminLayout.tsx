@@ -17,6 +17,9 @@ import {
   useMediaQuery,
   Divider,
   Button,
+  Menu,
+  MenuItem,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -27,6 +30,8 @@ import {
   Settings as SettingsIcon,
   Info as InfoIcon,
   Logout as LogoutIcon,
+  Person as PersonIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAuthStore } from '../../stores';
 
@@ -88,6 +93,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user } = useAuthStore();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
 
   // ページ遷移時にスクロールを最上部にリセット
   useEffect(() => {
@@ -115,7 +121,21 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     }
   };
 
+  const handleAccountMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAccountMenuAnchor(event.currentTarget);
+  };
+
+  const handleAccountMenuClose = () => {
+    setAccountMenuAnchor(null);
+  };
+
+  const handleEditorNavigation = () => {
+    handleAccountMenuClose();
+    navigate('/editor');
+  };
+
   const handleLogout = () => {
+    handleAccountMenuClose();
     // ログアウト処理（実装はログインページに遷移）
     navigate('/login');
   };
@@ -188,7 +208,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           ml: { md: `${drawerWidth}px` },
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: 64, px: 2 }}>
           {isMobile && (
             <IconButton
               color="inherit"
@@ -199,15 +219,90 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexShrink: 0 }}>
             {navItems.find((item) => item.path === location.pathname)?.label ||
               '管理画面'}
           </Typography>
-          <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ flexGrow: 1, minWidth: 0 }} />
+
+          {/* アカウントメニュー */}
           {user && (
-            <Typography variant="body2" sx={{ color: 'inherit' }}>
-              {user.email}
-            </Typography>
+            <Box sx={{ flexShrink: 0 }}>
+              <Tooltip title="アカウント" arrow>
+                <IconButton
+                  size="small"
+                  onClick={handleAccountMenuOpen}
+                  sx={{
+                    color: 'inherit',
+                    width: 40,
+                    height: 40,
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }}
+                >
+                  <PersonIcon />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={accountMenuAnchor}
+                open={Boolean(accountMenuAnchor)}
+                onClose={handleAccountMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                disableScrollLock
+                PaperProps={{
+                  sx: {
+                    mt: 1,
+                    minWidth: 200,
+                    maxWidth: 300,
+                  },
+                }}
+              >
+                {/* メールアドレス表示（クリック不可） */}
+                <MenuItem
+                  onClick={(e) => e.stopPropagation()}
+                  sx={{
+                    cursor: 'default',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={user.email}
+                    primaryTypographyProps={{
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                    }}
+                  />
+                </MenuItem>
+                <Divider />
+
+                {/* エディタ画面へ */}
+                <MenuItem onClick={handleEditorNavigation}>
+                  <ListItemIcon>
+                    <EditIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>エディタ画面</ListItemText>
+                </MenuItem>
+                <Divider />
+
+                {/* ログアウト */}
+                <MenuItem onClick={handleLogout}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>ログアウト</ListItemText>
+                </MenuItem>
+              </Menu>
+            </Box>
           )}
         </Toolbar>
       </AppBar>

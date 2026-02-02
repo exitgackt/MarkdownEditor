@@ -30,10 +30,16 @@ const AdminSettingsPage = () => {
   const {
     browserGuide,
     terms,
+    version,
+    license,
+    privacyPolicy,
     maintenanceMode,
     authSettings,
     updateBrowserGuide,
     updateTerms,
+    updateVersion,
+    updateLicense,
+    updatePrivacyPolicy,
     toggleMaintenanceMode,
     fetchAuthSettings,
     updateAuthSettings,
@@ -47,6 +53,9 @@ const AdminSettingsPage = () => {
   const [authSettingsDialogOpen, setAuthSettingsDialogOpen] = useState(false);
   const [browserGuideDialogOpen, setBrowserGuideDialogOpen] = useState(false);
   const [termsDialogOpen, setTermsDialogOpen] = useState(false);
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
+  const [licenseDialogOpen, setLicenseDialogOpen] = useState(false);
+  const [privacyPolicyDialogOpen, setPrivacyPolicyDialogOpen] = useState(false);
   const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
 
   // メッセージダイアログ
@@ -78,6 +87,21 @@ const AdminSettingsPage = () => {
   const handleTermsSave = (content: string) => {
     updateTerms(content);
     showMessage('success', '保存完了', '利用規約を更新しました');
+  };
+
+  const handleVersionSave = (content: string) => {
+    updateVersion(content);
+    showMessage('success', '保存完了', 'バージョン情報を更新しました');
+  };
+
+  const handleLicenseSave = (content: string) => {
+    updateLicense(content);
+    showMessage('success', '保存完了', 'ライセンス情報を更新しました');
+  };
+
+  const handlePrivacyPolicySave = (content: string) => {
+    updatePrivacyPolicy(content);
+    showMessage('success', '保存完了', 'プライバシーポリシーを更新しました');
   };
 
   const handleMaintenanceConfirm = (isActive: boolean, message?: string) => {
@@ -232,6 +256,181 @@ const AdminSettingsPage = () => {
         </CardContent>
       </Card>
 
+      {/* メンテナンスモード */}
+      <Card sx={{ mb: 3, boxShadow: 1, overflow: 'hidden' }}>
+        <CardContent sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+          <Typography variant="h6" gutterBottom>
+            メンテナンスモード
+          </Typography>
+
+          {maintenanceMode.isActive && (
+            <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+              現在メンテナンスモードがONになっています。管理者以外のユーザーはアクセスできません。
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: maintenanceMode.isActive ? 0 : 2 }}>
+            <Typography>現在の状態:</Typography>
+            <Chip
+              label={maintenanceMode.isActive ? 'ON' : 'OFF'}
+              color={maintenanceMode.isActive ? 'error' : 'success'}
+              size="small"
+            />
+          </Box>
+
+          {maintenanceMode.isActive && maintenanceMode.message && (
+            <Box
+              sx={{
+                bgcolor: 'grey.50',
+                p: 2,
+                borderRadius: 1,
+                mb: 2,
+              }}
+            >
+              <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: '#000' }}>
+                メンテナンスメッセージ:
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#000', fontSize: '14px', lineHeight: 1.5 }} data-testid="maintenance-message">{maintenanceMode.message}</Typography>
+            </Box>
+          )}
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={maintenanceMode.isActive}
+                onChange={() => setMaintenanceDialogOpen(true)}
+                color={maintenanceMode.isActive ? 'error' : 'primary'}
+              />
+            }
+            label={
+              maintenanceMode.isActive
+                ? 'メンテナンスモードをOFFにする'
+                : 'メンテナンスモードをONにする'
+            }
+          />
+        </CardContent>
+      </Card>
+
+      {/* バージョン情報 */}
+      <Card sx={{ mb: 3, boxShadow: 1, overflow: 'hidden' }}>
+        <CardContent sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">バージョン情報</Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={() => setVersionDialogOpen(true)}
+            >
+              編集
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: 'grey.50',
+              p: 2,
+              borderRadius: 1,
+              maxHeight: '210px',
+              overflow: 'auto',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'monospace',
+              fontSize: '14px',
+              lineHeight: 1.5,
+              color: '#000',
+            }}
+          >
+            {version}
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* ライセンス情報 */}
+      <Card sx={{ mb: 3, boxShadow: 1, overflow: 'hidden' }}>
+        <CardContent sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">ライセンス情報</Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={() => setLicenseDialogOpen(true)}
+            >
+              編集
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: 'grey.50',
+              p: 2,
+              borderRadius: 1,
+              maxHeight: '210px',
+              overflow: 'auto',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'monospace',
+              fontSize: '14px',
+              lineHeight: 1.5,
+              color: '#000',
+            }}
+          >
+            {license}
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* プライバシーポリシー */}
+      <Card sx={{ mb: 3, boxShadow: 1, overflow: 'hidden' }}>
+        <CardContent sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">プライバシーポリシー</Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={() => setPrivacyPolicyDialogOpen(true)}
+            >
+              編集
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: 'grey.50',
+              p: 2,
+              borderRadius: 1,
+              maxHeight: '210px',
+              overflow: 'auto',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'monospace',
+              fontSize: '14px',
+              lineHeight: 1.5,
+              color: '#000',
+            }}
+          >
+            {privacyPolicy}
+          </Box>
+        </CardContent>
+      </Card>
+
       {/* 対応ブラウザ案内 */}
       <Card sx={{ mb: 3, boxShadow: 1, overflow: 'hidden' }}>
         <CardContent sx={{ maxWidth: '100%', overflow: 'hidden' }}>
@@ -312,61 +511,6 @@ const AdminSettingsPage = () => {
         </CardContent>
       </Card>
 
-      {/* メンテナンスモード */}
-      <Card sx={{ mb: 3, boxShadow: 1, overflow: 'hidden' }}>
-        <CardContent sx={{ maxWidth: '100%', overflow: 'hidden' }}>
-          <Typography variant="h6" gutterBottom>
-            メンテナンスモード
-          </Typography>
-
-          {maintenanceMode.isActive && (
-            <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
-              現在メンテナンスモードがONになっています。管理者以外のユーザーはアクセスできません。
-            </Alert>
-          )}
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: maintenanceMode.isActive ? 0 : 2 }}>
-            <Typography>現在の状態:</Typography>
-            <Chip
-              label={maintenanceMode.isActive ? 'ON' : 'OFF'}
-              color={maintenanceMode.isActive ? 'error' : 'success'}
-              size="small"
-            />
-          </Box>
-
-          {maintenanceMode.isActive && maintenanceMode.message && (
-            <Box
-              sx={{
-                bgcolor: 'grey.50',
-                p: 2,
-                borderRadius: 1,
-                mb: 2,
-              }}
-            >
-              <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: '#000' }}>
-                メンテナンスメッセージ:
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#000', fontSize: '14px', lineHeight: 1.5 }} data-testid="maintenance-message">{maintenanceMode.message}</Typography>
-            </Box>
-          )}
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={maintenanceMode.isActive}
-                onChange={() => setMaintenanceDialogOpen(true)}
-                color={maintenanceMode.isActive ? 'error' : 'primary'}
-              />
-            }
-            label={
-              maintenanceMode.isActive
-                ? 'メンテナンスモードをOFFにする'
-                : 'メンテナンスモードをONにする'
-            }
-          />
-        </CardContent>
-      </Card>
-
       {/* ダイアログ群 */}
       <TextEditDialog
         open={browserGuideDialogOpen}
@@ -383,6 +527,33 @@ const AdminSettingsPage = () => {
         initialValue={terms}
         onClose={() => setTermsDialogOpen(false)}
         onSave={handleTermsSave}
+        maxLength={50000}
+      />
+
+      <TextEditDialog
+        open={versionDialogOpen}
+        title="バージョン情報の編集"
+        initialValue={version}
+        onClose={() => setVersionDialogOpen(false)}
+        onSave={handleVersionSave}
+        maxLength={5000}
+      />
+
+      <TextEditDialog
+        open={licenseDialogOpen}
+        title="ライセンス情報の編集"
+        initialValue={license}
+        onClose={() => setLicenseDialogOpen(false)}
+        onSave={handleLicenseSave}
+        maxLength={10000}
+      />
+
+      <TextEditDialog
+        open={privacyPolicyDialogOpen}
+        title="プライバシーポリシーの編集"
+        initialValue={privacyPolicy}
+        onClose={() => setPrivacyPolicyDialogOpen(false)}
+        onSave={handlePrivacyPolicySave}
         maxLength={50000}
       />
 

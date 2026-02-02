@@ -6,7 +6,7 @@ import MonacoDiffEditor from '../../components/Editor/MonacoDiffEditor';
 import type { MonacoEditorHandle } from '../../components/Editor';
 import { MarkdownPreview } from '../../components/Preview';
 import { MindmapView, type MindmapViewRef } from '../../components/Mindmap';
-import { SaveConfirmDialog, MessageDialog, SearchDialog, ReplaceDialog, VersionInfoDialog, SettingsDialog, NewFolderDialog, ConfirmDialog, KeyboardShortcutsDialog, HelpDialog, ExportDialog, DiffSelectDialog } from '../../components/Common';
+import { SaveConfirmDialog, MessageDialog, SearchDialog, ReplaceDialog, VersionInfoDialog, SettingsDialog, NewFolderDialog, ConfirmDialog, KeyboardShortcutsDialog, HelpDialog, ExportDialog } from '../../components/Common';
 import type { SaveConfirmResult, SearchOptions, ReplaceOptions } from '../../components/Common';
 import { useFileStore, useTabStore, useUIStore, useFavoriteStore, usePreviewStore, useSettingsStore, useAuthStore } from '../../stores';
 import type { FileNode, Tab } from '../../types';
@@ -73,6 +73,14 @@ const EditorPage = () => {
   const { splitMode, viewMode, setSplitMode, setSplitEditorMode, togglePreview, toggleMindmap, toggleSplitEditor, enableSplitEditor, splitEditorMode } = usePreviewStore();
   const { fontSize, wordWrap, minimap, lineNumbers, colorTheme } = useSettingsStore();
   const { logout } = useAuthStore();
+
+  // 差分比較モード用の独立したコンテンツ状態
+  const [diffLeftContent, setDiffLeftContent] = useState<string>('');
+  const [diffRightContent, setDiffRightContent] = useState<string>('');
+
+  // 差分比較モード用のタブIDをrefで保持（クロージャー問題を回避）
+  const diffLeftTabIdRef = useRef<string | null>(null);
+  const diffRightTabIdRef = useRef<string | null>(null);
 
   // ファイルシステムの変更を監視（5秒ごと）
   const handleFileSystemUpdate = useCallback((newFileTree: FileNode) => {
@@ -170,9 +178,6 @@ const EditorPage = () => {
   // 新しいフォルダーダイアログの状態
   const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
 
-  // 差分比較ファイル選択ダイアログの状態
-  const [diffSelectDialogOpen, setDiffSelectDialogOpen] = useState(false);
-
   // お気に入りファイル不在確認ダイアログの状態
   const [favoriteNotFoundDialog, setFavoriteNotFoundDialog] = useState<{
     open: boolean;
@@ -223,6 +228,48 @@ const EditorPage = () => {
     }
   }, [isDiffMode, diffLeftTabId, diffRightTabId, activeTabId, setDiffLeftTab, setDiffRightTab]);
 
+  // 差分比較モード中に左側のタブが切り替わったら、左側のコンテンツを更新
+  useEffect(() => {
+    if (!isDiffMode || !diffLeftTabId) return;
+
+    // refを更新
+    diffLeftTabIdRef.current = diffLeftTabId;
+
+    // 最新のタブ情報をストアから直接取得
+    const currentTabs = useTabStore.getState().tabs;
+    const leftTab = currentTabs.find((t) => t.id === diffLeftTabId);
+    if (leftTab) {
+      console.log('[EditorPage] 左側コンテンツ更新:', {
+        diffLeftTabId,
+        fileName: leftTab.fileName,
+        contentLength: leftTab.content.length,
+        isDirty: leftTab.isDirty,
+      });
+      setDiffLeftContent(leftTab.content);
+    }
+  }, [isDiffMode, diffLeftTabId]);
+
+  // 差分比較モード中に右側のタブが切り替わったら、右側のコンテンツを更新
+  useEffect(() => {
+    if (!isDiffMode || !diffRightTabId) return;
+
+    // refを更新
+    diffRightTabIdRef.current = diffRightTabId;
+
+    // 最新のタブ情報をストアから直接取得
+    const currentTabs = useTabStore.getState().tabs;
+    const rightTab = currentTabs.find((t) => t.id === diffRightTabId);
+    if (rightTab) {
+      console.log('[EditorPage] 右側コンテンツ更新:', {
+        diffRightTabId,
+        fileName: rightTab.fileName,
+        contentLength: rightTab.content.length,
+        isDirty: rightTab.isDirty,
+      });
+      setDiffRightContent(rightTab.content);
+    }
+  }, [isDiffMode, diffRightTabId]);
+
   // RAF のクリーンアップ
   useEffect(() => {
     return () => {
@@ -264,13 +311,47 @@ const EditorPage = () => {
   // 差分比較切り替えハンドラ（差分比較モード終了時は元のモードに戻す）
   const handleToggleDiff = useCallback(() => {
     if (isDiffMode) {
+      // 差分モード解除時: フォーカスがある側のタブをアクティブにする
+      let tabIdToActivate = diffLeftTabIdRef.current; // デフォルトは左側
+
+      const diffEditorElement = document.querySelector('.monaco-diff-editor');
+      if (diffEditorElement) {
+        const modifiedEditor = diffEditorElement.querySelector('.modified');
+        const originalEditor = diffEditorElement.querySelector('.original');
+
+        if (modifiedEditor?.contains(document.activeElement)) {
+          // 右側にフォーカスがある
+          tabIdToActivate = diffRightTabIdRef.current;
+        } else if (originalEditor?.contains(document.activeElement)) {
+          // 左側にフォーカスがある
+          tabIdToActivate = diffLeftTabIdRef.current;
+        }
+        // どちらにもフォーカスがない場合は、デフォルトの左側
+      }
+
       // 差分モードを終了
       exitDiffMode();
+
+      // フォーカスがあった側のタブをアクティブにする
+      if (tabIdToActivate) {
+        setActiveTab(tabIdToActivate);
+      }
+
       // 差分比較に入る前のsplitModeとsplitEditorModeに戻す
       setSplitMode(previousSplitModeRef.current);
       setSplitEditorMode(previousSplitEditorModeRef.current);
+      // 差分コンテンツをクリア
+      setDiffLeftContent('');
+      setDiffRightContent('');
     } else {
-      // 差分モードを開始 - ファイル選択ダイアログを表示
+      // アクティブなタブがない場合は何もしない
+      if (!activeTabId) return;
+
+      // 現在のアクティブなタブを取得
+      const activeTab = tabs.find((t) => t.id === activeTabId);
+      if (!activeTab) return;
+
+      // 差分モードを開始 - 現在のタブを左右に表示
       // プレビュー、マインドマップ、または分割表示が表示されている場合は閉じる
       if (splitMode === 'horizontal' && (viewMode === 'preview' || viewMode === 'mindmap')) {
         // プレビュー/マインドマップを閉じて、差分比較終了後は'editor-only'に戻す
@@ -289,15 +370,14 @@ const EditorPage = () => {
         previousSplitEditorModeRef.current = splitEditorMode;
       }
 
-      // ファイル選択ダイアログを表示
-      setDiffSelectDialogOpen(true);
-    }
-  }, [isDiffMode, exitDiffMode, setSplitMode, setSplitEditorMode, splitMode, splitEditorMode, viewMode]);
+      // 差分比較モード用の独立したコンテンツを初期化（両方とも現在のタブの内容でスタート）
+      setDiffLeftContent(activeTab.content);
+      setDiffRightContent(activeTab.content);
 
-  // 差分比較実行ハンドラ
-  const handleDiffCompare = useCallback((leftTabId: string, rightTabId: string) => {
-    enterDiffMode(leftTabId, rightTabId);
-  }, [enterDiffMode]);
+      // 現在のタブを左右に表示して差分比較開始
+      enterDiffMode(activeTabId, activeTabId);
+    }
+  }, [isDiffMode, exitDiffMode, setSplitMode, setSplitEditorMode, splitMode, splitEditorMode, viewMode, activeTabId, enterDiffMode, tabs]);
 
   // タブ移動ハンドラ（次のタブ）
   const handleNextTab = useCallback(() => {
@@ -572,8 +652,13 @@ const EditorPage = () => {
 
   // タブを実際に閉じる処理
   const closeTab = useCallback((tabId: string) => {
+    // 差分比較モード中に、差分比較対象のタブが閉じられた場合は差分比較モードを終了
+    if (isDiffMode && (diffLeftTabId === tabId || diffRightTabId === tabId)) {
+      exitDiffMode();
+    }
+
     removeTab(tabId);
-  }, [removeTab]);
+  }, [removeTab, isDiffMode, diffLeftTabId, diffRightTabId, exitDiffMode]);
 
   // タブを閉じるハンドラ
   const handleTabClose = (tabId: string) => {
@@ -639,8 +724,12 @@ const EditorPage = () => {
 
   // 全タブを閉じる実処理
   const closeAllTabs = useCallback(() => {
+    // 差分比較モード中の場合は先に終了
+    if (isDiffMode) {
+      exitDiffMode();
+    }
     tabs.forEach((tab) => removeTab(tab.id));
-  }, [tabs, removeTab]);
+  }, [tabs, removeTab, isDiffMode, exitDiffMode]);
 
   // 全タブを閉じるハンドラ（未保存ファイルを順番に確認）
   const handleCloseAllTabs = useCallback(async () => {
@@ -1282,28 +1371,103 @@ const EditorPage = () => {
     if (!activeTab) return;
 
     try {
+      let contentToSave = activeTab.content;
+      let tabIdToSave = activeTab.id;
+
+      // 差分比較モード中の場合は、フォーカスがある側を保存
+      if (isDiffMode) {
+        // MonacoDiffEditorのrefを取得（存在する場合）
+        const diffEditorElement = document.querySelector('.monaco-diff-editor');
+        let savingLeftSide = true; // デフォルトは左側
+
+        if (diffEditorElement) {
+          // 右側（modified）エディタにフォーカスがあるかチェック
+          const modifiedEditor = diffEditorElement.querySelector('.modified');
+          const originalEditor = diffEditorElement.querySelector('.original');
+
+          if (modifiedEditor?.contains(document.activeElement)) {
+            // 右側にフォーカスがある
+            savingLeftSide = false;
+          } else if (originalEditor?.contains(document.activeElement)) {
+            // 左側にフォーカスがある
+            savingLeftSide = true;
+          }
+          // どちらにもフォーカスがない場合は、デフォルトの左側
+        }
+
+        if (savingLeftSide && diffLeftTabIdRef.current) {
+          // 左側を保存
+          contentToSave = diffLeftContent;
+          tabIdToSave = diffLeftTabIdRef.current;
+          console.log('[Save] 差分比較 - 左側を保存:', { tabId: tabIdToSave, contentLength: contentToSave.length });
+        } else if (!savingLeftSide && diffRightTabIdRef.current) {
+          // 右側を保存
+          contentToSave = diffRightContent;
+          tabIdToSave = diffRightTabIdRef.current;
+          console.log('[Save] 差分比較 - 右側を保存:', { tabId: tabIdToSave, contentLength: contentToSave.length });
+        }
+      }
+      // 分割エディタモードの場合は、フォーカスがある側を保存
+      else if (splitEditorMode && rightActiveTab) {
+        // 全てのMonaco Editorの要素を取得
+        const editorElements = document.querySelectorAll('.monaco-editor');
+        let savingRightSide = false;
+
+        if (editorElements.length >= 2) {
+          // 2つ目のエディタ（右側）にフォーカスがあるかチェック
+          const rightEditor = editorElements[1];
+          if (rightEditor?.contains(document.activeElement)) {
+            savingRightSide = true;
+          }
+        }
+
+        if (savingRightSide) {
+          // 右側を保存
+          contentToSave = rightActiveTab.content;
+          tabIdToSave = rightActiveTab.id;
+          console.log('[Save] 分割エディタ - 右側を保存:', { tabId: tabIdToSave, fileName: rightActiveTab.fileName });
+        } else {
+          // 左側を保存（デフォルト）
+          contentToSave = activeTab.content;
+          tabIdToSave = activeTab.id;
+          console.log('[Save] 分割エディタ - 左側を保存:', { tabId: tabIdToSave, fileName: activeTab.fileName });
+        }
+      }
+
+      // 保存するタブを取得
+      const currentTabs = useTabStore.getState().tabs;
+      const tabToSave = currentTabs.find(t => t.id === tabIdToSave);
+
+      if (!tabToSave) {
+        console.error('保存するタブが見つかりません:', tabIdToSave);
+        return;
+      }
+
       // ファイルハンドルがある場合は上書き保存
-      if (activeTab.handle) {
-        const writable = await activeTab.handle.createWritable();
-        await writable.write(activeTab.content);
+      if (tabToSave.handle) {
+        const writable = await tabToSave.handle.createWritable();
+        await writable.write(contentToSave);
         await writable.close();
-        markTabAsSaved(activeTab.id);
+
+        // タブの内容を更新
+        updateTabContent(tabIdToSave, contentToSave);
+        markTabAsSaved(tabIdToSave);
         return;
       }
 
       // ファイルハンドルがない場合は「名前を付けて保存」
       console.warn('⚠️ ファイルハンドルが見つかりません:', {
-        fileName: activeTab.fileName,
-        filePath: activeTab.filePath,
-        hasHandle: !!activeTab.handle,
-        tab: activeTab
+        fileName: tabToSave.fileName,
+        filePath: tabToSave.filePath,
+        hasHandle: !!tabToSave.handle,
+        tab: tabToSave
       });
       await handleSaveAs();
     } catch (err) {
       console.error('ファイルを保存できませんでした:', err);
       showMessage('ファイルを保存できませんでした。', 'error');
     }
-  }, [activeTab, markTabAsSaved]);
+  }, [activeTab, markTabAsSaved, isDiffMode, diffLeftContent, diffRightContent, updateTabContent, splitEditorMode, rightActiveTab]);
 
   // 名前を付けて保存ハンドラ
   const handleSaveAs = useCallback(async () => {
@@ -2089,10 +2253,32 @@ const EditorPage = () => {
                 {/* Diff Editor */}
                 {diffLeftTab && diffRightTab ? (
                   <MonacoDiffEditor
-                    original={diffLeftTab.content}
-                    modified={diffRightTab.content}
+                    original={diffLeftContent}
+                    modified={diffRightContent}
                     originalLanguage={diffLeftTab.fileName.endsWith('.md') ? 'markdown' : 'plaintext'}
                     modifiedLanguage={diffRightTab.fileName.endsWith('.md') ? 'markdown' : 'plaintext'}
+                    onOriginalChange={(value) => {
+                      setDiffLeftContent(value);
+                      // refから最新のタブIDを取得して更新
+                      if (diffLeftTabIdRef.current) {
+                        updateTabContent(diffLeftTabIdRef.current, value);
+                        // 左右が同じタブの場合は、右側も同期
+                        if (diffLeftTabIdRef.current === diffRightTabIdRef.current) {
+                          setDiffRightContent(value);
+                        }
+                      }
+                    }}
+                    onModifiedChange={(value) => {
+                      setDiffRightContent(value);
+                      // refから最新のタブIDを取得して更新
+                      if (diffRightTabIdRef.current) {
+                        updateTabContent(diffRightTabIdRef.current, value);
+                        // 左右が同じタブの場合は、左側も同期
+                        if (diffLeftTabIdRef.current === diffRightTabIdRef.current) {
+                          setDiffLeftContent(value);
+                        }
+                      }
+                    }}
                   />
                 ) : (
                   <Box
@@ -2317,14 +2503,6 @@ const EditorPage = () => {
         viewMode="mindmap"
         mindmapViewRef={mindmapViewRef}
         content={activeTab?.content || ''}
-      />
-
-      {/* 差分比較ファイル選択ダイアログ */}
-      <DiffSelectDialog
-        open={diffSelectDialogOpen}
-        onClose={() => setDiffSelectDialogOpen(false)}
-        onCompare={handleDiffCompare}
-        tabs={tabs.map((t) => ({ id: t.id, fileName: t.fileName, filePath: t.filePath }))}
       />
 
       {/* 新しいフォルダーダイアログ */}

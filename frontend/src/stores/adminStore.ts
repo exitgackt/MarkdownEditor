@@ -29,6 +29,9 @@ interface AdminState {
   // システム設定
   browserGuide: string;
   terms: string;
+  version: string;
+  license: string;
+  privacyPolicy: string;
   maintenanceMode: { isActive: boolean; message: string };
   adminUsers: AdminUser[];
   authSettings: AuthMethodSettings | null;
@@ -51,6 +54,9 @@ interface AdminState {
   updateBrowserGuide: (content: string) => Promise<void>;
   fetchTerms: () => Promise<void>;
   updateTerms: (content: string) => Promise<void>;
+  updateVersion: (content: string) => void;
+  updateLicense: (content: string) => void;
+  updatePrivacyPolicy: (content: string) => void;
   fetchMaintenanceMode: () => Promise<void>;
   toggleMaintenanceMode: (isActive: boolean, message?: string) => Promise<void>;
 
@@ -154,6 +160,61 @@ Microsoft Edge（最新版）
 2. 本サービスに関して紛争が生じた場合には、当社の本店所在地を管轄する裁判所を専属的合意管轄とします。
 
 以上
+
+制定日: 2024年1月1日
+最終改定日: 2024年1月1日`,
+  version: `バージョン: 1.0.0
+リリース日: 2024年1月1日
+
+【更新履歴】
+- 2024年1月1日: 初版リリース`,
+  license: `マークダウンエディタ ライセンス情報
+
+本ソフトウェアは以下のオープンソースライブラリを使用しています：
+
+【フロントエンド】
+- React (MIT License)
+- Monaco Editor (MIT License)
+- MUI (MIT License)
+- Zustand (MIT License)
+
+【バックエンド】
+- FastAPI (MIT License)
+- PostgreSQL (PostgreSQL License)
+
+詳細なライセンス情報は各ライブラリの公式ドキュメントをご参照ください。`,
+  privacyPolicy: `プライバシーポリシー
+
+当社は、本サービスにおいて取得する個人情報の取扱いについて、以下のとおりプライバシーポリシーを定めます。
+
+第1条（個人情報の定義）
+個人情報とは、個人情報保護法に規定される個人情報を指し、特定の個人を識別できる情報をいいます。
+
+第2条（個人情報の取得）
+当社は、以下の個人情報を取得します：
+- メールアドレス
+- 氏名
+- 利用履歴
+- アクセスログ
+
+第3条（個人情報の利用目的）
+当社は、取得した個人情報を以下の目的で利用します：
+(1) 本サービスの提供、運営、維持、改善のため
+(2) ユーザーサポートのため
+(3) 利用規約違反の対応のため
+(4) サービスに関する重要なお知らせのため
+
+第4条（個人情報の第三者提供）
+当社は、以下の場合を除き、個人情報を第三者に提供しません：
+(1) ユーザーの同意がある場合
+(2) 法令に基づく場合
+(3) 人の生命、身体または財産の保護のために必要がある場合
+
+第5条（個人情報の開示・訂正・削除）
+ユーザーは、当社に対して個人情報の開示、訂正、削除を請求することができます。
+
+第6条（お問い合わせ）
+個人情報の取扱いに関するお問い合わせは、お問い合わせフォームよりご連絡ください。
 
 制定日: 2024年1月1日
 最終改定日: 2024年1月1日`,
@@ -433,6 +494,21 @@ Microsoft Edge（最新版）
         error: apiError.detail || apiError.message || '利用規約の更新に失敗しました',
       });
     }
+  },
+
+  // バージョン情報更新（フロントエンドのみ）
+  updateVersion: (content: string) => {
+    set({ version: content });
+  },
+
+  // ライセンス情報更新（フロントエンドのみ）
+  updateLicense: (content: string) => {
+    set({ license: content });
+  },
+
+  // プライバシーポリシー更新（フロントエンドのみ）
+  updatePrivacyPolicy: (content: string) => {
+    set({ privacyPolicy: content });
   },
 
   // メンテナンスモード取得

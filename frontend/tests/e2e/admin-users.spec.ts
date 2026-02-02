@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-// テストアカウント
+// テストアカウント（管理者）
 const TEST_ADMIN = {
-  email: 'test@example.com',
-  password: 'Test1234!',
+  email: 'fulltest-admin@example.com',
+  password: 'Admin1234!',
 };
 
 // ページURL
@@ -13,47 +13,19 @@ const ADMIN_USERS_URL = '/admin/users';
  * 管理者ログイン処理（共通処理）
  */
 async function loginAsAdmin(page: any) {
-  // モックOAuthエンドポイントでログイン
-  const response = await page.request.post('http://localhost:8000/api/v1/test/mock-google-login', {
-    data: {
-      email: TEST_ADMIN.email,
-      name: 'Test Admin'
-    }
-  });
-
-  const data = await response.json();
-
-  // トークンを使ってユーザー情報を取得
-  const verifyResponse = await page.request.post('http://localhost:8000/api/v1/auth/verify', {
-    data: {},
-    headers: {
-      'Authorization': `Bearer ${data.token}`
-    }
-  });
-
-  const verifyData = await verifyResponse.json();
-
-  // ログインページに移動してストレージをセット
   await page.goto('/login');
 
-  // ZustandのpersistストレージとlocalStorageの両方に保存
-  await page.evaluate(({ token, user }) => {
-    localStorage.setItem('accessToken', token);
+  // ログインフォームの表示待ち
+  await page.waitForSelector('[data-testid="email-input"] input', { timeout: 10000 });
 
-    const authState = {
-      state: {
-        user: user,
-        accessToken: token,
-        isAuthenticated: true,
-        authSettings: null
-      },
-      version: 0
-    };
-    localStorage.setItem('auth-storage', JSON.stringify(authState));
-  }, { token: data.token, user: verifyData.user });
+  // ログイン情報を入力
+  await page.fill('[data-testid="email-input"] input', TEST_ADMIN.email);
+  await page.fill('[data-testid="password-input"] input', TEST_ADMIN.password);
 
-  // エディタページに移動
-  await page.goto('/editor');
+  // ログインボタンをクリック
+  await page.click('[data-testid="login-button"]');
+
+  // エディタページへの遷移を待機
   await page.waitForURL('/editor', { timeout: 15000 });
 }
 

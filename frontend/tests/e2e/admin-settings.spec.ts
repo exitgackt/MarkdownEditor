@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-// テストアカウント
+// テストアカウント（管理者）
 const TEST_ADMIN = {
-  email: 'test@example.com',
-  password: 'Test1234!',
+  email: 'fulltest-admin@example.com',
+  password: 'Admin1234!',
 };
 
 /**
@@ -58,9 +58,6 @@ test('E2E-ADMIN-SETTINGS-001: ページアクセスと全設定カード表示',
 
     // メンテナンスモード
     await expect(page.getByRole('heading', { name: 'メンテナンスモード' })).toBeVisible();
-
-    // ヘッダーメールアドレス（AppBarに表示）
-    await expect(page.locator(`text=${TEST_ADMIN.email}`)).toBeVisible();
   });
 });
 
@@ -478,10 +475,17 @@ test('E2E-ADMIN-SETTINGS-009: 管理画面ヘッダーのメールアドレス�
     await page.waitForLoadState('networkidle');
   });
 
-  await test.step('AppBar右側にログイン中のメールアドレスが表示される', async () => {
-    // AppBarの右側を特定
-    const appBar = page.getByRole('banner');
-    await expect(appBar.getByText(TEST_ADMIN.email)).toBeVisible();
+  await test.step('AppBar右側のアカウントアイコンをクリックしてメールアドレスを確認', async () => {
+    // アカウントアイコンをクリック
+    const accountButton = page.getByRole('button', { name: 'アカウント' });
+    await expect(accountButton).toBeVisible();
+    await accountButton.click();
+
+    // メニュー内にメールアドレスが表示される
+    await expect(page.getByText(TEST_ADMIN.email)).toBeVisible();
+
+    // メニューを閉じる（ESCキー）
+    await page.keyboard.press('Escape');
   });
 });
 

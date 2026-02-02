@@ -195,10 +195,10 @@ test('E2E-AUTH-003: 正常なEmail/Passwordログイン', async ({ page }) => {
 test('E2E-AUTH-004: パスワードリセット要求から新パスワード設定まで', async ({ page }) => {
   const consoleLogs = setupConsoleLog(page);
 
-  // 既存のtest@example.comを使用（レート制限回避）
-  const testEmail = 'test@example.com';
-  const originalPassword = 'Test1234!';
-  const newPassword = 'NewTest12345!';
+  // パスワードリセット専用のテストユーザーを使用
+  const testEmail = 'password-reset-test@example.com';
+  const originalPassword = 'Reset1234!';
+  const newPassword = 'NewReset12345!';
 
   await test.step('ログインページにアクセス', async () => {
     await page.goto('/login');
@@ -285,32 +285,6 @@ test('E2E-AUTH-004: パスワードリセット要求から新パスワード設
       } else {
         // 既にエディタページにいる場合はスキップ
         console.log('Already logged in');
-      }
-    });
-
-    // テスト後、元のパスワードに戻す
-    await test.step('後処理: パスワードを元に戻す', async () => {
-      // ログアウト
-      await page.click('[data-testid="user-menu"]');
-      await page.waitForTimeout(500);
-      await page.click('[data-testid="logout-button"]');
-      await page.waitForURL('/login', { timeout: 5000 });
-
-      // パスワードリセット要求
-      await page.click('text=パスワードを忘れた方');
-      await page.fill('[data-testid="reset-email-input"] input', testEmail);
-      await page.click('[data-testid="reset-send-button"]');
-      await page.waitForTimeout(1000);
-
-      // リセットトークン取得
-      const resetResponse = await page.request.get(`http://localhost:8000/api/v1/test/reset-token/${encodeURIComponent(testEmail)}`);
-      if (resetResponse.ok()) {
-        const resetData = await resetResponse.json();
-        await page.goto(`/reset-password/${resetData.token}`);
-        await page.fill('[data-testid="new-password-input"] input', originalPassword);
-        await page.fill('[data-testid="password-confirm-input"] input', originalPassword);
-        await page.click('[data-testid="reset-password-button"]');
-        await page.waitForTimeout(2000);
       }
     });
   });

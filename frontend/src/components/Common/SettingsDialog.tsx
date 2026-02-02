@@ -13,10 +13,9 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Divider,
 } from '@mui/material';
 import { useSettingsStore } from '../../stores';
-import type { ColorTheme, WordWrap, LineNumbers } from '../../stores';
+import type { WordWrap, LineNumbers } from '../../stores';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -29,12 +28,10 @@ const SettingsDialog = ({ open, onClose }: SettingsDialogProps) => {
     wordWrap,
     minimap,
     lineNumbers,
-    colorTheme,
     setFontSize,
     setWordWrap,
     setMinimap,
     setLineNumbers,
-    setColorTheme,
     resetToDefaults,
   } = useSettingsStore();
 
@@ -52,13 +49,6 @@ const SettingsDialog = ({ open, onClose }: SettingsDialogProps) => {
 
   const handleLineNumbersChange = (event: { target: { value: string } }) => {
     setLineNumbers(event.target.value as LineNumbers);
-  };
-
-  const handleColorThemeChange = (event: { target: { value: string } }) => {
-    const newTheme = event.target.value as ColorTheme;
-    console.log('[SettingsDialog] テーマを変更します:', colorTheme, '→', newTheme);
-    setColorTheme(newTheme);
-    console.log('[SettingsDialog] setColorTheme を呼び出しました');
   };
 
   const handleResetToDefaults = () => {
@@ -270,73 +260,6 @@ const SettingsDialog = ({ open, onClose }: SettingsDialogProps) => {
               <MenuItem value="off">OFF（非表示）</MenuItem>
               <MenuItem value="relative">相対行番号</MenuItem>
               <MenuItem value="interval">間隔表示</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        <Divider sx={{ borderColor: '#3C3C3C', my: 2 }} />
-
-        {/* テーマ設定セクション */}
-        <Typography
-          variant="subtitle2"
-          sx={{ color: '#0078d4', mb: 2, fontWeight: 600 }}
-        >
-          テーマ設定
-        </Typography>
-
-        {/* カラーテーマ */}
-        <Box sx={{ mb: 2 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel
-              sx={{
-                color: '#fff',
-                '&.MuiInputLabel-shrink': { color: '#fff' },
-                '&.Mui-focused': { color: '#0078d4' },
-              }}
-            >
-              カラーテーマ
-            </InputLabel>
-            <Select
-              value={colorTheme}
-              onChange={handleColorThemeChange}
-              label="カラーテーマ"
-              sx={{
-                color: '#fff',
-                '.MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#555',
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#777',
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#0078d4',
-                },
-                '.MuiSvgIcon-root': {
-                  color: '#ccc',
-                },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    bgcolor: '#2D2D2D',
-                    '& .MuiMenuItem-root': {
-                      color: '#fff',
-                      '&:hover': {
-                        bgcolor: '#3C3C3C',
-                      },
-                      '&.Mui-selected': {
-                        bgcolor: '#0078d4',
-                        '&:hover': {
-                          bgcolor: '#0078d4',
-                        },
-                      },
-                    },
-                  },
-                },
-              }}
-            >
-              <MenuItem value="vs-dark">ダーク</MenuItem>
-              <MenuItem value="vs-light">ライト</MenuItem>
             </Select>
           </FormControl>
         </Box>
