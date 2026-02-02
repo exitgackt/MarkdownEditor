@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # CORS
     allowed_origins: List[str] = Field(
-        default=["http://localhost:5173"], alias="ALLOWED_ORIGINS"
+        default=["http://localhost:5173", "https://markdown-editor-six-smoky.vercel.app"], alias="ALLOWED_ORIGINS"
     )
 
     # Admin
