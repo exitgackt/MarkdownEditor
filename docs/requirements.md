@@ -1,6 +1,6 @@
 # Visual Studio風マークダウンエディタ - 要件定義書
 
-> **バージョン**: 2.9
+> **バージョン**: 3.0
 > **作成日**: 2026-01-26
 > **最終更新**: 2026-02-03
 > **ステータス**: 確定
@@ -911,3 +911,4 @@ CVSS 3.1の評価観点:
 | 2.7 | 2026-02-01 | admin-users.spec.ts修正完了：管理者アカウント統一（fulltest-admin@example.com）、loginAsAdmin関数をEmail/Passwordログインに変更、全テスト合格（7/7）✅、最終テストカバレッジ97.5%（39/40、E2E-EDIT-010のみ調整待ち） |
 | 2.8 | 2026-02-01 | E2Eテスト100%達成🎊：全40項目のテストが合格、Phase 12完了、E2E-EDIT-010含むすべてのテストが安定稼働、目標カバレッジ90%を大幅に超える100%を達成 |
 | 2.9 | 2026-02-03 | メニューバー・差分比較機能・CSP設定の詳細仕様を追加：メニューバーの全メニュー項目・ショートカット詳細化、Monaco Diff Editorの実装仕様（renderIndicators, glyphMargin, onOriginalChange/onModifiedChange対応）、CSP設定の詳細（style-src, worker-src, font-src対応）、カラーモード削除と理由の明記 |
+| 3.0 | 2026-02-03 | セキュリティ・UI/UX・ビルドプロセス改善完了：RegisterPageの自動入力防止（autoComplete属性）、HelpDialog・VersionInfoDialogの初期表示修正、VersionInfoDialogのデザイン統一（ヘルプと同一）、日本語用語の統一（フォルダ→フォルダー）、ログイン画面のデモアカウント削除、AdminLayoutのログアウト機能修正、ヘルプダイアログのカラーテーマ文言削除、TransitionPropsを使用したTypeScript ビルドエラー修正、ローカルビルド✅・Vercelデプロイ✅完了 |
