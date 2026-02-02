@@ -13,7 +13,7 @@ import {
   ListItemText,
   Divider,
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Description,
   TouchApp,
@@ -45,6 +45,13 @@ const HelpDialog = ({ open, onClose }: HelpDialogProps) => {
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
+
+  // ダイアログを開いたときにタブを最初に戻す
+  useEffect(() => {
+    if (open) {
+      setTabValue(0);
+    }
+  }, [open]);
 
   return (
     <Dialog
