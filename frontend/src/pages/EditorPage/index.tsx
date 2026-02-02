@@ -1276,7 +1276,7 @@ const EditorPage = () => {
   // フォルダ更新ハンドラ
   const handleRefresh = useCallback(async () => {
     if (!rootHandle) {
-      showMessage('フォルダが開かれていません。', 'warning');
+      showMessage('フォルダーが開かれていません。', 'warning');
       return;
     }
 
