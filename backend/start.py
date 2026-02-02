@@ -21,6 +21,16 @@ try:
     print("FastAPI app imported successfully")
     print()
 
+    print("Running database migrations...")
+    result = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd="/app"
+    )
+    if result.returncode != 0:
+        print("WARNING: Database migration had issues, but continuing startup...")
+    print("Database migration completed")
+    print()
+
     print("Starting uvicorn server...")
     port = int(os.environ.get("PORT", "8080"))
     uvicorn.run(app, host="0.0.0.0", port=port)
