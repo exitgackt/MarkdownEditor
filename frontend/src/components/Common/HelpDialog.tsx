@@ -261,7 +261,7 @@ const HelpDialog = ({ open, onClose }: HelpDialogProps) => {
             カスタマイズ
           </Typography>
           <Typography variant="body2" sx={{ color: '#ccc', mb: 2, lineHeight: 1.6, fontSize: '12px' }}>
-            設定（右上のギアアイコン）から、フォントサイズ、カラーテーマ、折り返し設定などを
+            設定（右上のギアアイコン）から、フォントサイズ、折り返し設定などを
             カスタマイズできます。
           </Typography>
 
